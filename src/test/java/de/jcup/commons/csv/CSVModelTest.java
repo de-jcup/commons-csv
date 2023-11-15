@@ -2,6 +2,7 @@ package de.jcup.commons.csv;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,14 +11,32 @@ import de.jcup.commons.csv.CSVModel.CSVRow;
 class CSVModelTest {
 
     @Test
-    void getRowCount_empty_model_is_0() {
+    void getRowCount_empty_model_with_headers_is_0() {
         /* prepare */
         CSVModel model = new CSVModel("my-column1", "my-column2");
 
         /* execute + test */
         assertEquals(0, model.getRowCount());
     }
-    
+
+    @Test
+    void getRowCount_empty_model_without_headers_is_0() {
+        /* prepare */
+        CSVModel model = new CSVModel();
+
+        /* execute + test */
+        assertEquals(0, model.getRowCount());
+    }
+
+    @Test
+    void toCSVString_empty_model_without_headers_is_blank() {
+        /* prepare */
+        CSVModel model = new CSVModel();
+
+        /* execute + test */
+        assertTrue(model.toCSVString().isBlank());
+    }
+
     @Test
     void set_value_for_non_existing_column_throws_exception() {
         /* prepare */
@@ -150,12 +169,12 @@ class CSVModelTest {
         assertEquals("i am inside row0-colum1", model.getCellValue("my-column1", 0));
 
     }
-    
+
     @Test
     void model_getCellValue_three_rows() {
         /* prepare */
         CSVModel model = new CSVModel("my-column1", "my-column2");
-        
+
         /* @formatter:off */
         model.addRow().
           set("my-column2", "i am inside row0-colum2").
@@ -167,17 +186,18 @@ class CSVModelTest {
           set("my-column2", "i am inside row2-colum2").
           set("my-column1", "i am inside row2-colum1");
         /* @formatter:on */
-        
+
         /* execute + test */
         assertEquals("i am inside row0-colum1", model.getCellValue("my-column1", 0));
         assertEquals("i am inside row2-colum2", model.getCellValue("my-column2", 2));
-        
+
     }
+
     @Test
     void model_rowiterator_works_as_exected() {
         /* prepare */
         CSVModel model = new CSVModel("my-column1", "my-column2");
-        
+
         /* @formatter:off */
         model.addRow().
         set("my-column2", "i am inside row0-colum2").
@@ -189,17 +209,18 @@ class CSVModelTest {
         set("my-column2", "i am inside row2-colum2").
         set("my-column1", "i am inside row2-colum1");
         /* @formatter:on */
-        
+
         /* execute + test */
         assertEquals("i am inside row0-colum1", model.getCellValue("my-column1", 0));
         assertEquals("i am inside row2-colum2", model.getCellValue("my-column2", 2));
-        
+
     }
+
     @Test
     void model_getRow_three_rows() {
         /* prepare */
         CSVModel model = new CSVModel("my-column1", "my-column2");
-        
+
         /* @formatter:off */
         model.addRow().
             set("my-column2", "i am inside row0-colum2").
@@ -211,7 +232,7 @@ class CSVModelTest {
             set("my-column2", "i am inside row2-colum2").
             set("my-column1", "i am inside row2-colum1");
         /* @formatter:on */
-        
+
         /* execute + test */
         assertEquals("i am inside row0-colum1", model.getRow(0).getCellValue("my-column1"));
         assertEquals("i am inside row2-colum2", model.getRow(2).getCellValue("my-column2"));

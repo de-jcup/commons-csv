@@ -26,11 +26,27 @@ import java.util.List;
  * </pre>
  */
 public class CSVModel {
-    public static final String DEFAULT_LINE_ENDING = "\n";
-    public static final String DEFAULT_DELIMITER = ",";
 
-    private String delimiter = DEFAULT_DELIMITER;
-    private String lineEnding = DEFAULT_LINE_ENDING;
+    public enum LineEnding {
+
+        UNIX("\n"), MAC("\n"), MAC_PRE_OSX("\r"), WINDOWS("\r\n");
+
+        private String chars;
+
+        private LineEnding(String chars) {
+            this.chars = chars;
+        }
+        
+        public String getChars() {
+            return chars;
+        }
+    }
+
+    public static final LineEnding DEFAULT_LINE_ENDING = LineEnding.UNIX;
+    public static final char DEFAULT_DELIMITER = ',';
+
+    private char delimiter = DEFAULT_DELIMITER;
+    private LineEnding lineEnding = DEFAULT_LINE_ENDING;
     private List<String> columnNames = new ArrayList<>();
     private List<CSVRow> rows = new ArrayList<>();
 
@@ -38,38 +54,43 @@ public class CSVModel {
         this.columnNames.addAll(Arrays.asList(columnNames));
     }
 
-    public void setLineEnding(String lineEnding) {
+    public void setLineEnding(LineEnding lineEnding) {
+        if (lineEnding == null) {
+            lineEnding = DEFAULT_LINE_ENDING;
+        }
         this.lineEnding = lineEnding;
     }
 
-    public String getLineEnding() {
+    public LineEnding getLineEnding() {
         return lineEnding;
     }
 
-    public void setDelimiter(String delimiter) {
+    public void setDelimiter(char delimiter) {
         this.delimiter = delimiter;
     }
 
-    public String getDelimiter() {
+    public char getDelimiter() {
         return delimiter;
     }
 
     /**
      * Resolves cell value
+     * 
      * @param columnName the name of the column
-     * @param rowIndex row number to search. First row number is 0
+     * @param rowIndex   row number to search. First row number is 0
      * @return value or <code>null</code>
-     * @throws IllegalArgumentException if column does not exist 
-     * @throws IndexOutOfBoundsException if rowIndex >= rows 
+     * @throws IllegalArgumentException  if column does not exist
+     * @throws IndexOutOfBoundsException if rowIndex >= rows
      */
     public String getCellValue(String columnName, int rowIndex) {
         CSVRow row = assertRowForRowIndex(rowIndex);
         return row.getCellValue(columnName);
-                
+
     }
-    
+
     /**
      * Resolves row for given index
+     * 
      * @param rowIndex starts with 0
      * @return row
      * @throws IndexOutOfBoundsException when row not found
@@ -124,7 +145,7 @@ public class CSVModel {
                     sb.append(delimiter);
                 }
             }
-            sb.append(lineEnding);
+            sb.append(lineEnding.chars);
         }
         for (CSVRow row : rows) {
             int length = row.cells.length;
@@ -137,14 +158,14 @@ public class CSVModel {
                     sb.append(delimiter);
                 }
             }
-            sb.append(lineEnding);
+            sb.append(lineEnding.chars);
         }
 
         return sb.toString();
     }
 
     private CSVRow assertRowForRowIndex(int rowIndex) {
-        if (rowIndex<0 || rowIndex>= rows.size()) {
+        if (rowIndex < 0 || rowIndex >= rows.size()) {
             throw new IndexOutOfBoundsException(rowIndex);
         }
         return rows.get(rowIndex);
@@ -161,24 +182,25 @@ public class CSVModel {
 
     public class CSVRow {
         private String[] cells;
-    
+
         private CSVRow() {
             this.cells = new String[columnNames.size()];
         }
-    
+
         /**
          * Resolves cell value
+         * 
          * @param columnName
          * @param rowIndex
          * @return value or <code>null</code>
-         * @throws IllegalArgumentException if column does not exist 
-         * @throws IndexOutOfBoundsException if rowIndex >= rows 
+         * @throws IllegalArgumentException  if column does not exist
+         * @throws IndexOutOfBoundsException if rowIndex >= rows
          */
         public String getCellValue(String columnName) {
             int index = assetColumnIndexForName(columnName);
             return cells[index];
         }
-    
+
         /**
          * Set value for given column
          * 
@@ -190,7 +212,7 @@ public class CSVModel {
         public CSVRow set(String columnName, Object cellData) {
             return set(columnName, String.valueOf(cellData));
         }
-    
+
         /**
          * Set value for given column
          * 
@@ -202,7 +224,7 @@ public class CSVModel {
         public CSVRow set(String columnName, double cellData) {
             return set(columnName, String.valueOf(cellData));
         }
-    
+
         /**
          * Set value for given column
          * 
@@ -214,7 +236,7 @@ public class CSVModel {
         public CSVRow set(String columnName, long cellData) {
             return set(columnName, String.valueOf(cellData));
         }
-    
+
         /**
          * Set value for given column
          * 
@@ -228,7 +250,7 @@ public class CSVModel {
             cells[index] = cellData;
             return this;
         }
-    
+
     }
-   
+
 }
