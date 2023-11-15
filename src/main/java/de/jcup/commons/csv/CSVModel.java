@@ -1,3 +1,4 @@
+// / SPDX-License-Identifier: MIT
 package de.jcup.commons.csv;
 
 import java.util.ArrayList;

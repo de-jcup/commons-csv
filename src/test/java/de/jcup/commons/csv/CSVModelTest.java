@@ -1,3 +1,4 @@
+// / SPDX-License-Identifier: MIT
 package de.jcup.commons.csv;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

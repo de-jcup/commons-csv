@@ -1,5 +1,5 @@
 #!/bin/bash 
-
+#SPDX-License-Identifier: MIT
 
 RED='\033[31m'
 WHITE='\033[97m'

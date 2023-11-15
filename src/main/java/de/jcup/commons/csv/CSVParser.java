@@ -1,3 +1,4 @@
+// / SPDX-License-Identifier: MIT
 package de.jcup.commons.csv;
 
 import de.jcup.commons.csv.CSVModel.CSVRow;
