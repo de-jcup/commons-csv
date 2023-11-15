@@ -1,8 +1,8 @@
 package de.jcup.commons.csv;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,11 +33,15 @@ public class CSVModel {
     private String lineEnding = DEFAULT_LINE_ENDING;
     private List<String> columnNames = new ArrayList<>();
     private List<CSVRow> rows = new ArrayList<>();
-    
+
+    public CSVModel(String... columnNames) {
+        this.columnNames.addAll(Arrays.asList(columnNames));
+    }
+
     public void setLineEnding(String lineEnding) {
         this.lineEnding = lineEnding;
     }
-    
+
     public String getLineEnding() {
         return lineEnding;
     }
@@ -50,79 +54,170 @@ public class CSVModel {
         return delimiter;
     }
 
-    public CSVModel(String... columnNames) {
-        this.columnNames.addAll(Arrays.asList(columnNames));
+    /**
+     * Resolves cell value
+     * @param columnName the name of the column
+     * @param rowIndex row number to search. First row number is 0
+     * @return value or <code>null</code>
+     * @throws IllegalArgumentException if column does not exist 
+     * @throws IndexOutOfBoundsException if rowIndex >= rows 
+     */
+    public String getCellValue(String columnName, int rowIndex) {
+        CSVRow row = assertRowForRowIndex(rowIndex);
+        return row.getCellValue(columnName);
+                
+    }
+    
+    public CSVRow getRow(int rowIndex) {
+        return assertRowForRowIndex(rowIndex);
     }
 
-    public class CSVRow {
-        private String[] cells;
-
-        private CSVRow() {
-            this.cells = new String[columnNames.size()];
-        }
-
-        public CSVRow set(String columnId, Object cellData) {
-            return set(columnId, String.valueOf(cellData));
-        }
-        
-        public CSVRow set(String columnId, double cellData) {
-            return set(columnId, String.valueOf(cellData));
-        }
-        
-        public CSVRow set(String columnId, long cellData) {
-            return set(columnId, String.valueOf(cellData));
-        }
-
-        public CSVRow set(String columnId, String cellData) {
-            int index = columnNames.indexOf(columnId);
-            if (index == -1) {
-                throw new IllegalArgumentException(
-                        "The column: " + columnId + " is not wellknown! Accepted csv columns are:" + columnNames);
-            }
-            cells[index] = cellData;
-            return this;
-        }
-
+    /**
+     * Resolve column names
+     * 
+     * @return unmodifiable list of ordered column names
+     */
+    public List<String> getColumnNames() {
+        return Collections.unmodifiableList(columnNames);
     }
 
     public CSVRow addRow() {
         CSVRow row = new CSVRow();
-        rows .add(row);
+        rows.add(row);
         return row;
     }
 
+    /**
+     * Convert model to CVS string - with header
+     * 
+     * @return CSV string
+     */
     public String toCSVString() {
         return toCSVString(true);
     }
-    
+
+    /**
+     * Convert model to CVS string - with header or not
+     * 
+     * @param withHeader
+     * @return CSV string
+     */
     public String toCSVString(boolean withHeader) {
         StringBuilder sb = new StringBuilder();
-        
+
         if (withHeader) {
             Iterator<String> it = columnNames.iterator();
             while (it.hasNext()) {
                 String columnName = it.next();
                 sb.append(columnName);
-                if(it.hasNext()) {
+                if (it.hasNext()) {
                     sb.append(delimiter);
                 }
             }
             sb.append(lineEnding);
         }
-        for (CSVRow row: rows) {
+        for (CSVRow row : rows) {
             int length = row.cells.length;
-            int lastColumnWithDelimiter = length-1;
-            
-            for (int i=0;i<length;i++) {
+            int lastColumnWithDelimiter = length - 1;
+
+            for (int i = 0; i < length; i++) {
                 String cell = row.cells[i];
                 sb.append(cell);
-                if (i!=lastColumnWithDelimiter) {
+                if (i != lastColumnWithDelimiter) {
                     sb.append(delimiter);
                 }
             }
             sb.append(lineEnding);
         }
-        
+
         return sb.toString();
+    }
+
+    private CSVRow assertRowForRowIndex(int rowIndex) {
+        if (rowIndex>= rows.size()) {
+            throw new IndexOutOfBoundsException(rowIndex);
+        }
+        return rows.get(rowIndex);
+    }
+
+    private int assetColumnIndexForName(String columnName) {
+        int index = columnNames.indexOf(columnName);
+        if (index == -1) {
+            throw new IllegalArgumentException(
+                    "The column: " + columnName + " is not wellknown! Accepted csv columns are:" + columnNames);
+        }
+        return index;
+    }
+
+    public class CSVRow {
+        private String[] cells;
+    
+        private CSVRow() {
+            this.cells = new String[columnNames.size()];
+        }
+    
+        /**
+         * Resolves cell value
+         * @param columnName
+         * @param rowIndex
+         * @return value or <code>null</code>
+         * @throws IllegalArgumentException if column does not exist 
+         * @throws IndexOutOfBoundsException if rowIndex >= rows 
+         */
+        public String getCellValue(String columnName) {
+            int index = assetColumnIndexForName(columnName);
+            return cells[index];
+        }
+    
+        /**
+         * Set value for given column
+         * 
+         * @param columnName
+         * @param cellData
+         * @return row instance
+         * @throws IllegalArgumentException if column does not exist
+         */
+        public CSVRow set(String columnName, Object cellData) {
+            return set(columnName, String.valueOf(cellData));
+        }
+    
+        /**
+         * Set value for given column
+         * 
+         * @param columnName
+         * @param cellData
+         * @return row instance
+         * @throws IllegalArgumentException if column does not exist
+         */
+        public CSVRow set(String columnName, double cellData) {
+            return set(columnName, String.valueOf(cellData));
+        }
+    
+        /**
+         * Set value for given column
+         * 
+         * @param columnName
+         * @param cellData
+         * @return row instance
+         * @throws IllegalArgumentException if column does not exist
+         */
+        public CSVRow set(String columnName, long cellData) {
+            return set(columnName, String.valueOf(cellData));
+        }
+    
+        /**
+         * Set value for given column
+         * 
+         * @param columnName
+         * @param cellData
+         * @return row instance
+         * @throws IllegalArgumentException if column does not exist
+         */
+        public CSVRow set(String columnName, String cellData) {
+            int index = assetColumnIndexForName(columnName);
+            cells[index] = cellData;
+            return this;
+        }
+    
     }
 }
