@@ -15,16 +15,21 @@
  * ============================================================================
  */
 
-group = "commons.csv"
-version = "0.0.1"
+plugins {
 
-repositories {
-    mavenCentral()
+    id 'java'
+    id 'eclipse'
+    id 'java-library'
+    id 'signing'
+    id 'maven-publish'
 }
 
-apply plugin: 'java'
-apply plugin: 'java-library'
-apply plugin: 'eclipse'
+repositories {
+    /* add your local maven repo - so you can deploy there */
+    mavenLocal() 
+    /* add maven central */
+    mavenCentral()
+}
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
@@ -60,4 +65,122 @@ tasks.eclipse.dependsOn << {
             logger.info("Not able to create %1",resourceDir);
         }
     }
+}
+if (JavaVersion.current().isJava8Compatible()) {
+    tasks.withType(Javadoc) {
+      // turn off doclint
+      options.addStringOption('Xdoclint:none', '-quiet')
+      enabled = false
+    }
+}
+
+// -------------------------------------
+// deployment
+// -------------------------------------
+def distVersion="1.0.0"
+def isReleaseVersion=true
+
+def ossrhUsername = System.getenv('OSSRH_USERNAME')
+def ossrhPassword = System.getenv('OSSRH_PASSWORD')
+
+def signingActivated = hasProperty('signing.password')
+
+
+group = "de.jcup.commons.csv"
+version = "${distVersion}"
+ 
+/**
+ * Task to create source jars
+ */
+task sourcesJar(type: Jar, dependsOn:classes) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+/**
+ * Task to create javadoc jars
+ */
+task javadocJar(type: Jar, dependsOn:javadoc) {
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+/**
+ * Define artifacts
+ */
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+}
+
+if (signingActivated) {
+    signing {
+        sign configurations.archives
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            def releaseRepo = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            url = isReleaseVersion ? releaseRepo : snapshotRepo
+            credentials {
+                username = project.hasProperty('ossrhUsername') ? ossrhUsername : "Unknown user"
+                password = project.hasProperty('ossrhPassword') ? ossrhPassword : "Unknown password"
+            }
+        }
+    }
+        
+    publications {
+        mavenJava(MavenPublication) {
+             pom {
+                name = 'commons-csv'
+                description = 'commons-csv is a small Java library to handle CSV data. It comes without dependencies to any external libraries - except JDK.'
+                groupId = 'de.jcup.commons.csv'
+                
+                url = 'https://github.com/de-jcup/commons-csv'
+                
+                from components.java
+                
+                licenses {
+                    license {
+                       name ='MIT License'
+                       url ='https://opensource.org/license/mit/'
+                    }
+                }
+                
+                developers {
+                  developer {
+                    id ='de-jcup'
+                    name ='Albert Tregnaghi'
+                    email='albert.tregnaghi@jcup.de'
+                  }
+                }
+                
+                scm {
+                    connection = 'scm:git:https://github.com/de-jcup/commons-csv.git'
+                    developerConnection = 'scm:git:git@github.com:de-jcup/commons-csv.git'
+                    url = 'https://github.com/de-jcup/commons-csv'
+                }
+            }
+        }
+    }
+}
+
+task checkCredentialsSet{
+    doFirst {
+        if (ossrhPassword==null){
+            throw new IllegalArgumentException("OSSRH_PASSWORD not set")
+        }
+        
+        if (ossrhUsername==null){
+            throw new IllegalArgumentException("OSSRH_USERNAME not set")
+        } 
+        
+        if (! signingActivated) {
+            throw new IllegalArgumentException("signing.password property not set, but necessary!")
+        }
+    }
+
 }

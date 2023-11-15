@@ -21,6 +21,7 @@ import de.jcup.commons.csv.CSVModel.LineEnding;
  * delimiter, auto trimming of cells enabled) at the parser instance:
  * 
  * <pre>
+ * <code>
  * String csvAsText = ...// just create or load CSV data, with CR/LF (Windows) and semicolon as delimiter
  * 
  * CSVParser parser = new CSVParser();
@@ -29,9 +30,8 @@ import de.jcup.commons.csv.CSVModel.LineEnding;
  * parser.setCellAutoTrimmingEnabled(false);
  * 
  * CSVModel result = parser.parse(csvAsText,false); // here we parse without headlines
- * <code>
- * 
  * </code>
+ * 
  * </pre>
  * 
  */

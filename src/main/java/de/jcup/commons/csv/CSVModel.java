@@ -27,6 +27,9 @@ import java.util.List;
  */
 public class CSVModel {
 
+    /**
+     * An enumeration for line endings
+     */
     public enum LineEnding {
 
         UNIX("\n"), MAC("\n"), MAC_PRE_OSX("\r"), WINDOWS("\r\n");
@@ -130,7 +133,7 @@ public class CSVModel {
     /**
      * Convert model to CVS string - with header or not
      * 
-     * @param withHeader
+     * @param withHeader when <code>true</code> a header line in first row will be created
      * @return CSV string
      */
     public String toCSVString(boolean withHeader) {
