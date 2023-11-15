@@ -86,7 +86,7 @@ def ossrhPassword = System.getenv('OSSRH_PASSWORD')
 def signingActivated = hasProperty('signing.password')
 
 
-group = "de.jcup.commons.csv"
+group = "de.jcup.commons"
 version = "${distVersion}"
  
 /**
@@ -119,6 +119,13 @@ if (signingActivated) {
     }
 }
 
+jar {
+    metaInf {
+        from "LICENSE"
+    }
+
+}
+
 publishing {
     repositories {
         maven {
@@ -126,9 +133,11 @@ publishing {
             def snapshotRepo = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
             url = isReleaseVersion ? releaseRepo : snapshotRepo
             credentials {
-                username = project.hasProperty('ossrhUsername') ? ossrhUsername : "$System.env.OSSRH_PASSWORD"
-                password = project.hasProperty('ossrhPassword') ? ossrhPassword : "$System.env.OSSRH_USERNAME"
+                username = project.hasProperty('ossrhUsername') ? ossrhUsername : "$System.env.OSSRH_USERNAME"
+                password = project.hasProperty('ossrhPassword') ? ossrhPassword : "$System.env.OSSRH_PASSWORD"
+                
             }
+            println "Deploy to url:$url"
         }
     }
         
