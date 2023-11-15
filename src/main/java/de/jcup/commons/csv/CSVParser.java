@@ -3,10 +3,70 @@ package de.jcup.commons.csv;
 import de.jcup.commons.csv.CSVModel.CSVRow;
 import de.jcup.commons.csv.CSVModel.LineEnding;
 
+/**
+ * CSV parser which returns a {@link CSVModel}
+ * 
+ * Usage:
+ * 
+ * <pre>
+ * <code>
+ * String csvAsText = ...// just create or load CSV data
+ * 
+ * CSVParser parser = new CSVParser();
+ * CSVModel result = parser.parse(csvAsText,true); // here we parse with headlines
+ * </code>
+ * </pre>
+ * 
+ * It is possible to change the default behavior (Unix line ending, ',' as
+ * delimiter, auto trimming of cells enabled) at the parser instance:
+ * 
+ * <pre>
+ * String csvAsText = ...// just create or load CSV data, with CR/LF (Windows) and semicolon as delimiter
+ * 
+ * CSVParser parser = new CSVParser();
+ * parser.setLineEnding(LineEnding.WINDOWS);
+ * parser.setDelimiter(';');
+ * parser.setCellAutoTrimmingEnabled(false);
+ * 
+ * CSVModel result = parser.parse(csvAsText,false); // here we parse without headlines
+ * <code>
+ * 
+ * </code>
+ * </pre>
+ * 
+ */
 public class CSVParser {
 
+    private char delimiter = CSVModel.DEFAULT_DELIMITER;
+    private LineEnding lineEnding = CSVModel.DEFAULT_LINE_ENDING;
+    private boolean cellAutoTrimmingEnabled = true;
+
+    public void setCellAutoTrimmingEnabled(boolean cellAutoTrimmingEnabled) {
+        this.cellAutoTrimmingEnabled = cellAutoTrimmingEnabled;
+    }
+
+    public boolean isCellAutoTrimmingEnabled() {
+        return cellAutoTrimmingEnabled;
+    }
+
+    public char getDelimiter() {
+        return delimiter;
+    }
+
+    public void setDelimiter(char delimiter) {
+        this.delimiter = delimiter;
+    }
+
+    public LineEnding getLineEnding() {
+        return lineEnding;
+    }
+
+    public void setLineEnding(LineEnding lineEnding) {
+        this.lineEnding = lineEnding;
+    }
+
     /**
-     * Parses given csv string with default delimiter and line ending. Cells are auto trimmed.
+     * Parses given csv string with default delimiter and line ending.
      * 
      * @param csv
      * @param withHeadline when defined as <code>false</code>, the column names for
@@ -17,40 +77,6 @@ public class CSVParser {
      * @throws CSVParseException if parsing fails
      */
     public CSVModel parse(String csv, boolean withHeadline) throws CSVParseException {
-        return parse(csv, withHeadline, CSVModel.DEFAULT_DELIMITER);
-    }
-
-    /**
-     * Parses given csv string and default line ending. Cells are auto trimmed.
-     * 
-     * @param csv
-     * @param withHeadline when defined as <code>false</code>, the column names for
-     *                     the model will be auto created with "col${columnIndex}".
-     *                     For example if the first line has 3 columns, the headers
-     *                     will be "col0,col1,col2"
-     * @param delimiter    delimiter to use - e.g. ',' or ';'
-     * @return csv model
-     * @throws CSVParseException if parsing fails
-     */
-    public CSVModel parse(String csv, boolean withHeadline, char delimiter) throws CSVParseException {
-        return parse(csv, withHeadline, delimiter, CSVModel.DEFAULT_LINE_ENDING);
-    }
-
-    /**
-     * Parses given csv string and default line ending. Cells are auto trimmed.
-     * 
-     * @param csv
-     * @param withHeadline when defined as <code>false</code>, the column names for
-     *                     the model will be auto created with "col${columnIndex}".
-     *                     For example if the first line has 3 columns, the headers
-     *                     will be "col0,col1,col2"
-     * @param delimiter    delimiter to use - e.g. ',' or ';'
-     * @param lineEnding   the line ending to use
-     * @return csv model
-     * @throws CSVParseException if parsing fails
-     */
-    public CSVModel parse(String csv, boolean withHeadline, char delimiter, LineEnding lineEnding)
-            throws CSVParseException {
         if (csv == null) {
             throw new IllegalArgumentException("csv may not be null");
         }
@@ -100,7 +126,8 @@ public class CSVParser {
             return;
         }
         String[] cells = line.split(context.delimiter);
-        trimCells(cells);
+        autoTrimCellsIfEnabled(cells);
+
         if (context.currentLineNumber == 0) {
             context.firstLineColumnCount = cells.length;
         } else {
@@ -117,7 +144,10 @@ public class CSVParser {
         }
     }
 
-    private void trimCells(String[] cells) {
+    private void autoTrimCellsIfEnabled(String[] cells) {
+        if (!cellAutoTrimmingEnabled) {
+            return;
+        }
         for (int i = 0; i < cells.length; i++) {
             String value = cells[i];
             if (value != null) {
