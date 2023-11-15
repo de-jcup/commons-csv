@@ -1,0 +1,136 @@
+:toc:
+
+== README
+`commons-csv` is a small Java library to handle CSV data. 
+
+It comes without any dependencies to any external libraries - except JRE classes.
+
+
+The project is licensed by `MIT-License`.
+
+=== Installation
+==== Gradle
+Create a `build.gradle` file and add following dependencies:
+[source,groovy]
+----
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'de.jcup.commons:commons-csv:1.0.0'
+}
+
+----
+
+
+=== Usage
+
+==== Example 1
+[source,java,title="Create a CSV model and convert to CSV string"]
+----
+CSVModel model = new CSVModel("First name", "Last name", "Hobbies");<1>
+model.addRow().<2>
+    set("Last name", "Tregnaghi").
+    set("First name", "Albert").<3>
+    set("Hobbies", "Software development; Electronic games, Book reading");<4>
+
+String csv = model.toCSVString();<5>
+
+System.out.println(csv);
+
+----
+<1> Creates a CSV model with named columns ("First name", "Last name", "Hobbies").
+    Because no additional model configuration is done, the defaults are set to 
+    Unix-Linendings, default separator `;` and cells will be automatically trimmed.
+<2> Creates and adds a new row to model. The created row object has a fluent api.
+<3> We set a value for the "First name" column. The ordering does not matter here!
+<4> Sets a column called "Hobbies". Here we use the delimiter inside the data which
+lead to auto escaping of the value later
+
+Output will be:
+
+[source,java]
+----
+First name;Last name;Hobbies
+Albert;Tregnaghi;"Software development; Electronic games, Book reading"<1>
+----
+<1> The last column which contains the delimiter char inside, is automatically 
+    escaped with character `"` 
+
+==== Example 2
+[source,java,title="Parse a CSV string without headlines to model and fetch content by API"]
+----
+String csv = "Hello;World";
+        
+CSVParser parser = new CSVParser();
+CSVModel model = parser.parse(csv,false);
+
+// Because no headlines are defined/fetched, auto column names are created 
+// The name pattern is : "col${columnIndex}"
+String value1 = model.getCellValue("col0", 0);
+String value2 = model.getCellValue("col1", 0);
+System.out.println(value1+" "+value2);
+
+----
+
+Output will be:
+
+[source,java]
+----
+Hello World
+----
+
+==== Example 3
+[source,java,title="Parse a CSV string with headlines to model and fetch content by API"]
+----
+String csv = "Word1;Word2\nHello;World\nOther;Line";
+        
+CSVParser parser = new CSVParser();
+CSVModel model = parser.parse(csv,true);
+
+// We use now the headlines defined inside CSV file:
+String value1 = model.getCellValue("Word1", 0);
+String value2 = model.getCellValue("Word2", 0);
+System.out.println(value1+" "+value2);
+----
+
+Output will be:
+
+[source,java]
+----
+Hello World
+----
+
+=== Contribution guide
+Contributions are welcome.
+
+==== Project location
+https://github.com/de-jcup/commons-csv
+
+==== Git setup
+```
+git clone git@github.com:de-jcup/commons-csv.git
+```
+
+Wanted git setup:
+```
+git config branch.autosetuprebase always
+git config branch.master.rebase true
+git config push.default current
+git config core.autocrlf input
+git config color.ui auto
+git config --add remote.origin.fetch +refs/tags/*:refs/tags/*
+```
+
+=== Build
+```
+./gradlew build
+```
+
+
+

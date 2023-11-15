@@ -1,8 +1,8 @@
 // / SPDX-License-Identifier: MIT
 package de.jcup.commons.csv;
 
+import de.jcup.commons.csv.CSVConstants.LineEnding;
 import de.jcup.commons.csv.CSVModel.CSVRow;
-import de.jcup.commons.csv.CSVModel.LineEnding;
 
 /**
  * CSV parser which returns a {@link CSVModel}
@@ -18,7 +18,7 @@ import de.jcup.commons.csv.CSVModel.LineEnding;
  * </code>
  * </pre>
  * 
- * It is possible to change the default behavior (Unix line ending, ',' as
+ * It is possible to change the default behavior (Unix line ending, ';' as
  * delimiter, auto trimming of cells enabled) at the parser instance:
  * 
  * <pre>
@@ -27,7 +27,7 @@ import de.jcup.commons.csv.CSVModel.LineEnding;
  * 
  * CSVParser parser = new CSVParser();
  * parser.setLineEnding(LineEnding.WINDOWS);
- * parser.setDelimiter(';');
+ * parser.setDelimiter(',');
  * parser.setCellAutoTrimmingEnabled(false);
  * 
  * CSVModel result = parser.parse(csvAsText,false); // here we parse without headlines
@@ -38,8 +38,8 @@ import de.jcup.commons.csv.CSVModel.LineEnding;
  */
 public class CSVParser {
 
-    private char delimiter = CSVModel.DEFAULT_DELIMITER;
-    private LineEnding lineEnding = CSVModel.DEFAULT_LINE_ENDING;
+    private char delimiter = CSVConstants.DEFAULT_DELIMITER;
+    private LineEnding lineEnding = CSVConstants.DEFAULT_LINE_ENDING;
     private boolean cellAutoTrimmingEnabled = true;
 
     public void setCellAutoTrimmingEnabled(boolean cellAutoTrimmingEnabled) {
@@ -55,6 +55,9 @@ public class CSVParser {
     }
 
     public void setDelimiter(char delimiter) {
+        if (delimiter == '"') {
+            throw new IllegalArgumentException("A delimiter \" is not allowed because it is used to escape strings!");
+        }
         this.delimiter = delimiter;
     }
 
@@ -84,10 +87,14 @@ public class CSVParser {
         if (lineEnding == null) {
             throw new IllegalArgumentException("lineEnding may not be null");
         }
-
-        String delimiterString = String.valueOf(delimiter);
+        CSVModelBuildContext context = new CSVModelBuildContext();
+        context.withHeadline = withHeadline;
+        context.delimiter =  String.valueOf(delimiter);
+        context.lineSplitter = new CSVLineSplitter(delimiter);
+        
         String[] lines = csv.split(lineEnding.getChars());
-        CSVModel model = buildModel(withHeadline, delimiterString, lines);
+        
+        CSVModel model = buildModel(context, lines);
         model.setDelimiter(delimiter);
         model.setLineEnding(lineEnding);
         return model;
@@ -97,7 +104,8 @@ public class CSVParser {
         return new CSVModel();
     }
 
-    private class CSVModelBuildContext {
+    class CSVModelBuildContext {
+        private CSVLineSplitter lineSplitter;
         private CSVModel model;
         private int currentLineNumber = 0;
         public boolean withHeadline;
@@ -105,10 +113,8 @@ public class CSVParser {
         public int firstLineColumnCount;
     }
 
-    private CSVModel buildModel(boolean withHeadline, String delimiterString, String[] lines) throws CSVParseException {
-        CSVModelBuildContext context = new CSVModelBuildContext();
-        context.withHeadline = withHeadline;
-        context.delimiter = delimiterString;
+    private CSVModel buildModel(CSVModelBuildContext context, String[] lines) throws CSVParseException {
+       
 
         for (String line : lines) {
 
@@ -126,7 +132,8 @@ public class CSVParser {
         if (line.isBlank()) {
             return;
         }
-        String[] cells = line.split(context.delimiter);
+        String[] cells = context.lineSplitter.splitLine(line);
+
         autoTrimCellsIfEnabled(cells);
 
         if (context.currentLineNumber == 0) {
@@ -145,6 +152,7 @@ public class CSVParser {
         }
     }
 
+   
     private void autoTrimCellsIfEnabled(String[] cells) {
         if (!cellAutoTrimmingEnabled) {
             return;

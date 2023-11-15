@@ -145,7 +145,7 @@ publishing {
         mavenJava(MavenPublication) {
              pom {
                 name = 'commons-csv'
-                description = 'commons-csv is a small Java library to handle CSV data. It comes without dependencies to any external libraries - except JDK.'
+                description = 'commons-csv is a small Java library to handle CSV data. It comes without any dependencies to any external libraries - except JRE classes.'
                 groupId = 'de.jcup.commons.csv'
                 
                 url = 'https://github.com/de-jcup/commons-csv'

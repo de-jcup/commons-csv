@@ -16,15 +16,55 @@ class CSVParserTest {
     }
 
     @Test
+    void double_quotes_as_delimiters_throws_illegal_argument_exception() {
+        assertThrows(IllegalArgumentException.class, ()-> parserToTest.setDelimiter('"'));
+    }
+    
+    @Test
+    void csv_with_escaped_string_and_delimiter_inside() throws Exception{
+        /* prepare */
+        String csv = """
+                \"a;\"0;b0;c0;d0
+                a1;b1;\"c;1\";d1
+                a2;b2;c2;d2
+                """;
+
+        /* execute */
+        CSVModel result = parserToTest.parse(csv, false);
+        
+        /* test */
+        assertEquals(3, result.getRowCount());
+        assertEquals("c;1", result.getCellValue("col2",1));
+    }
+    
+    @Test
     void csv_3_lines_4_columns_no_header_can_be_parsed_and_has_auto_columnnames() throws Exception {
+        /* prepare */
+        String csv = """
+                a0;b0;c0;d0
+                a1;b1;c1;d1
+                a2;b2;c2;d2
+                """;
+
+        /* execute */
+        CSVModel result = parserToTest.parse(csv, false);
+        
+        /* test */
+        assertEquals(3, result.getRowCount());
+        assertEquals("c1", result.getCellValue("col2",1));
+    }
+    
+    @Test
+    void csv_3_lines_4_columns_no_header_can_be_parsed_and_has_auto_columnnames_delimiter_not_default_but_commata() throws Exception {
         /* prepare */
         String csv = """
                 a0,b0,c0,d0
                 a1,b1,c1,d1
                 a2,b2,c2,d2
                 """;
-
+        
         /* execute */
+        parserToTest.setDelimiter(',');
         CSVModel result = parserToTest.parse(csv, false);
         
         /* test */
@@ -35,10 +75,10 @@ class CSVParserTest {
     void csv_4_lines_4_columns_with_header_can_be_parsed_and_has_columnnames_and_cells_are_trimmed() throws Exception {
         /* prepare */
         String csv = """
-                alpha, beta, gamma, delta
-                a0,    b0,   c0,    d0
-                a1,    b1,   c1,    d1
-                a2,    b2,   c2,    d2
+                alpha; beta; gamma; delta
+                a0;    b0;   c0;    d0
+                a1;    b1;   c1;    d1
+                a2;    b2;   c2;    d2
                 """;
         
         /* execute */

@@ -1,12 +1,16 @@
 // / SPDX-License-Identifier: MIT
 package de.jcup.commons.csv;
 
+import static de.jcup.commons.csv.CSVConstants.DEFAULT_DELIMITER;
+import static de.jcup.commons.csv.CSVConstants.DEFAULT_LINE_ENDING;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import de.jcup.commons.csv.CSVConstants.LineEnding;
 /**
  * A simple CSV model where rows can be added.
  * 
@@ -28,26 +32,6 @@ import java.util.List;
  */
 public class CSVModel {
 
-    /**
-     * An enumeration for line endings
-     */
-    public enum LineEnding {
-
-        UNIX("\n"), MAC("\n"), MAC_PRE_OSX("\r"), WINDOWS("\r\n");
-
-        private String chars;
-
-        private LineEnding(String chars) {
-            this.chars = chars;
-        }
-        
-        public String getChars() {
-            return chars;
-        }
-    }
-
-    public static final LineEnding DEFAULT_LINE_ENDING = LineEnding.UNIX;
-    public static final char DEFAULT_DELIMITER = ',';
 
     private char delimiter = DEFAULT_DELIMITER;
     private LineEnding lineEnding = DEFAULT_LINE_ENDING;
@@ -70,6 +54,9 @@ public class CSVModel {
     }
 
     public void setDelimiter(char delimiter) {
+        if (delimiter=='"') {
+            throw new IllegalArgumentException("A delimiter \" is not allowed because it is used to escape strings!");
+        }
         this.delimiter = delimiter;
     }
 
@@ -144,28 +131,36 @@ public class CSVModel {
             Iterator<String> it = columnNames.iterator();
             while (it.hasNext()) {
                 String columnName = it.next();
-                sb.append(columnName);
+                sb.append(escapedCellIfNecessary(columnName));
+                
                 if (it.hasNext()) {
                     sb.append(delimiter);
                 }
             }
-            sb.append(lineEnding.chars);
+            sb.append(lineEnding.getChars());
         }
         for (CSVRow row : rows) {
             int length = row.cells.length;
             int lastColumnWithDelimiter = length - 1;
 
             for (int i = 0; i < length; i++) {
-                String cell = row.cells[i];
+                String cell = escapedCellIfNecessary(row.cells[i]);
                 sb.append(cell);
                 if (i != lastColumnWithDelimiter) {
                     sb.append(delimiter);
                 }
             }
-            sb.append(lineEnding.chars);
+            sb.append(lineEnding.getChars());
         }
 
         return sb.toString();
+    }
+    
+    private String escapedCellIfNecessary(String cell) {
+        if (cell.contains(String.valueOf(delimiter))){
+            return "\""+cell+"\"";
+        }
+        return cell;
     }
 
     private CSVRow assertRowForRowIndex(int rowIndex) {
@@ -179,7 +174,7 @@ public class CSVModel {
         int index = columnNames.indexOf(columnName);
         if (index == -1) {
             throw new IllegalArgumentException(
-                    "The column: " + columnName + " is not wellknown! Accepted csv columns are:" + columnNames);
+                    "The column: " + columnName + " is not wellknown! Accepted CSV columns are:" + columnNames);
         }
         return index;
     }

@@ -6,11 +6,38 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import de.jcup.commons.csv.CSVModel.CSVRow;
 
 class CSVModelTest {
 
+    @ParameterizedTest
+    @ValueSource(chars = {CSVConstants.DEFAULT_DELIMITER,',','#'})
+    void when_delimiter_is_inside_data_data_will_be_escaped_as_string(char delimiter) {
+        /* prepare */
+        CSVModel model = new CSVModel("my-column1", "my-column2");
+        model.setDelimiter(delimiter);
+
+        /* execute + test */
+        model.addRow().set("my-column1","value and also the delimiter:"+delimiter+" is inside!").set("my-column2","val2");
+        
+        /* test */
+        String csvLine = model.toCSVString(false);
+        assertEquals("\"value and also the delimiter:"+delimiter+" is inside!\""+delimiter+"val2", csvLine.trim());
+        
+    }
+    
+    @Test
+    void double_quotes_as_delimiters_throws_illegal_argument_exception() {
+        /* prepare */
+        CSVModel modelToTest = new CSVModel();
+        
+        /* execute +test */
+        assertThrows(IllegalArgumentException.class, ()-> modelToTest.setDelimiter('"'));
+    }
+    
     @Test
     void getRowCount_empty_model_with_headers_is_0() {
         /* prepare */
@@ -58,7 +85,7 @@ class CSVModelTest {
 
         /* test */
         String expected = """
-                my-column1,my-column2
+                my-column1;my-column2
                 """;
 
         assertEquals(expected, csv);
@@ -93,8 +120,8 @@ class CSVModelTest {
 
         /* test */
         String expected = """
-                my-column1,my-column2
-                i am inside row0-colum1,i am inside row0-colum2
+                my-column1;my-column2
+                i am inside row0-colum1;i am inside row0-colum2
                                 """;
 
         assertEquals(expected, csv);
@@ -114,10 +141,10 @@ class CSVModelTest {
 
         /* test */
         String expected = """
-                my-column1,my-column2
-                i am inside row0-colum1,i am inside row0-colum2
-                i am inside row1-colum1,i am inside row1-colum2
-                i am inside row2-colum1,i am inside row2-colum2
+                my-column1;my-column2
+                i am inside row0-colum1;i am inside row0-colum2
+                i am inside row1-colum1;i am inside row1-colum2
+                i am inside row2-colum1;i am inside row2-colum2
                                 """;
 
         assertEquals(expected, csv);
@@ -137,7 +164,7 @@ class CSVModelTest {
 
         /* test */
         String expected = """
-                i am inside row0-colum1,i am inside row0-colum2
+                i am inside row0-colum1;i am inside row0-colum2
                 """;
 
         assertEquals(expected, csv);
