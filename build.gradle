@@ -146,7 +146,7 @@ publishing {
              pom {
                 name = 'commons-csv'
                 description = 'commons-csv is a small Java library to handle CSV data. It comes without any dependencies to any external libraries - except JRE classes.'
-                groupId = 'de.jcup.commons.csv'
+                groupId = 'de.jcup.commons'
                 
                 url = 'https://github.com/de-jcup/commons-csv'
                 
