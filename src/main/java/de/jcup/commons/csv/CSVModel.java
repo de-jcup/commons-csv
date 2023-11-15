@@ -68,6 +68,12 @@ public class CSVModel {
                 
     }
     
+    /**
+     * Resolves row for given index
+     * @param rowIndex starts with 0
+     * @return row
+     * @throws IndexOutOfBoundsException when row not found
+     */
     public CSVRow getRow(int rowIndex) {
         return assertRowForRowIndex(rowIndex);
     }
@@ -85,6 +91,10 @@ public class CSVModel {
         CSVRow row = new CSVRow();
         rows.add(row);
         return row;
+    }
+
+    public int getRowCount() {
+        return rows.size();
     }
 
     /**
@@ -134,7 +144,7 @@ public class CSVModel {
     }
 
     private CSVRow assertRowForRowIndex(int rowIndex) {
-        if (rowIndex>= rows.size()) {
+        if (rowIndex<0 || rowIndex>= rows.size()) {
             throw new IndexOutOfBoundsException(rowIndex);
         }
         return rows.get(rowIndex);
@@ -220,4 +230,5 @@ public class CSVModel {
         }
     
     }
+   
 }

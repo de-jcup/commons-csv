@@ -10,6 +10,15 @@ import de.jcup.commons.csv.CSVModel.CSVRow;
 class CSVModelTest {
 
     @Test
+    void getRowCount_empty_model_is_0() {
+        /* prepare */
+        CSVModel model = new CSVModel("my-column1", "my-column2");
+
+        /* execute + test */
+        assertEquals(0, model.getRowCount());
+    }
+    
+    @Test
     void set_value_for_non_existing_column_throws_exception() {
         /* prepare */
         CSVModel model = new CSVModel("my-column1", "my-column2");
@@ -165,6 +174,28 @@ class CSVModelTest {
         
     }
     @Test
+    void model_rowiterator_works_as_exected() {
+        /* prepare */
+        CSVModel model = new CSVModel("my-column1", "my-column2");
+        
+        /* @formatter:off */
+        model.addRow().
+        set("my-column2", "i am inside row0-colum2").
+        set("my-column1", "i am inside row0-colum1");
+        model.addRow().
+        set("my-column2", "i am inside row1-colum2").
+        set("my-column1", "i am inside row1-colum1");
+        model.addRow().
+        set("my-column2", "i am inside row2-colum2").
+        set("my-column1", "i am inside row2-colum1");
+        /* @formatter:on */
+        
+        /* execute + test */
+        assertEquals("i am inside row0-colum1", model.getCellValue("my-column1", 0));
+        assertEquals("i am inside row2-colum2", model.getCellValue("my-column2", 2));
+        
+    }
+    @Test
     void model_getRow_three_rows() {
         /* prepare */
         CSVModel model = new CSVModel("my-column1", "my-column2");
@@ -184,7 +215,7 @@ class CSVModelTest {
         /* execute + test */
         assertEquals("i am inside row0-colum1", model.getRow(0).getCellValue("my-column1"));
         assertEquals("i am inside row2-colum2", model.getRow(2).getCellValue("my-column2"));
-        
+        assertEquals(3, model.getRowCount());
     }
 
 }
