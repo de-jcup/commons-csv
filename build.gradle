@@ -137,7 +137,6 @@ publishing {
                 password = project.hasProperty('ossrhPassword') ? ossrhPassword : "$System.env.OSSRH_PASSWORD"
                 
             }
-            println "Deploy to url:$url"
         }
     }
         

@@ -43,4 +43,4 @@ if [ -z "$SIGNING_PASSWORD" ]; then
     exit 1;
 fi
 
-./gradlew clean build checkCredentialsSet publish -Psigning.password=$SIGNING_PASSWORD
+./gradlew clean build javadoc checkCredentialsSet publish -Psigning.password=$SIGNING_PASSWORD
