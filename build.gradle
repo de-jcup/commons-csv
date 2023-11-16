@@ -85,7 +85,6 @@ def ossrhPassword = System.getenv('OSSRH_PASSWORD')
 
 def signingActivated = hasProperty('signing.password')
 
-
 group = "de.jcup.commons"
 version = "${distVersion}"
  
@@ -113,18 +112,18 @@ artifacts {
     archives javadocJar
 }
 
-if (signingActivated) {
-    signing {
-        sign configurations.archives
-    }
-}
-
 jar {
     metaInf {
         from "LICENSE"
     }
 
 }
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 
 publishing {
     repositories {
@@ -171,10 +170,30 @@ publishing {
                     developerConnection = 'scm:git:git@github.com:de-jcup/commons-csv.git'
                     url = 'https://github.com/de-jcup/commons-csv'
                 }
+                
             }
         }
     }
 }
+
+publishMavenJavaPublicationToMavenRepository{
+    dependsOn ":signArchives"
+}
+
+if (signingActivated) {
+
+    signing {
+    
+        def signingKey = System.getenv("SIGNING_KEY")
+        def signingPassword = System.getenv("SIGNING_PASSWORD")
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        
+        sign publishing.publications.mavenJava
+        sign configurations.archives
+    }
+    
+}
+
 
 task checkCredentialsSet{
     doFirst {

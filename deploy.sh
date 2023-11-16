@@ -43,4 +43,10 @@ if [ -z "$SIGNING_PASSWORD" ]; then
     exit 1;
 fi
 
+if [ -z "$SIGNING_KEY" ]; then
+    echo -e "Please export ${RED}SIGNING_KEY${NC}"
+    usage
+    exit 1;
+fi
+
 ./gradlew clean build javadoc checkCredentialsSet publish -Psigning.password=$SIGNING_PASSWORD
