@@ -8,6 +8,16 @@ It comes without any dependencies to any external libraries - except JRE classes
 
 The project is licensed by `MIT-License`.
 
+[NOTE]
+====
+`de.jcup.commons` was created based on idea of the Apache commons - with the focus on common 
+things that don't exist there. Unfortunately, I only now saw that there is already a similar 
+library from Apache under the exact same name "commons-csv" (see https://commons.apache.org/proper/commons-csv/).
+
+This was not intentional or deliberate. I will continue to use my library, 
+but as I said, there is also a (probably good) alternative from Apache itself.
+====
+
 === Installation
 ==== Gradle
 Create a `build.gradle` file and add following dependencies:
